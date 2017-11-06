@@ -22,13 +22,70 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Say you have a Rails app that needs to manage Widgets.  You create a WidgetsController and add
 
-## Development
+`include CollectionController`
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+to it.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```
+class WidgetsController < ApplicationController
+  include CollectionController
+
+  def index
+    @widgets = collection
+  end
+
+  def new
+    member = build_member
+  end
+
+  def edit
+    member  # refers to the widget in the URL
+  end
+
+  def show
+    member  # refers to the widget in the URL
+  end
+
+  def create
+    member = build_member(valid_params) # creates a new member from the params
+    member.save!
+  end
+
+  def update
+    member.update!(valid_params)
+  end
+
+  def destroy
+    member.destroy!
+  end
+
+  protected
+
+  def valid_params
+    params.permit(:name, :value, :status)
+  end
+end
+```
+
+I find I use this frequently enough to warrant being a gem.  I like that there's very little under the hood, but it saves a lot of boilerplate coding on standard controllers.
+
+Override `collection` if your controller has to do something odd to find the collection of things.
+
+If your members are nested, you can do something like:
+
+```
+def collection
+  @collection ||= begin
+    if params[:parent_id]
+      Parent.find(params[:parent_id]).widgets
+    else
+      super
+    end
+  end
+end
+```
 
 ## Contributing
 
